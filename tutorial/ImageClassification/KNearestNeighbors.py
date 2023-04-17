@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pickle
 import numpy as np
+from tutorial.ImageClassifier.KNN import Classifier
 
 train_batch_url = "../DataSet/cifar-10-batches-py/data_batch_1"
 test_batch_url = "../DataSet/cifar-10-batches-py/test_batch"
@@ -42,7 +43,6 @@ X_test = X_test.reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1).astype("uint8")
 # print("")
 # arr = arr.transpose(0, 2, 1)
 # print(arr)
-print(X_train[1])
 
 """ 将部分图片数据集可视化 """
 plt.imshow(X_train[1])
@@ -66,4 +66,33 @@ for y, cls in enumerate(classes):
         if i == 0:
             plt.title(cls)
 plt.show()
+
+""" 削减数据集的规模,减轻训练时间 """
+num_training = 5000
+mask = list(range(num_training))
+X_train = X_train[mask]
+y_train = y_train[mask]
+
+num_test = 500
+mask = list(range(num_test))
+X_test = X_test[mask]
+y_test = y_test[mask]
+
+X_train = np.reshape(X_train, (X_train.shape[0], -1))
+X_test = np.reshape(X_test, (X_test.shape[0], -1))
+
+KNN = Classifier()
+KNN.train(X_train, y_train)
+predict_dists = KNN.predict(X_test, 1, 1)
+# print(predict_dists)
+ture_false_table = []
+for i in range(num_test):
+    if predict_dists[i] == y_test[i]:
+        ture_false_table = np.append(ture_false_table, 1)
+    else:
+        ture_false_table = np.append(ture_false_table, 0)
+# print(ture_false_table)
+print("准确率: " + str(np.count_nonzero(ture_false_table)/num_test) + "%")
+
+
 
