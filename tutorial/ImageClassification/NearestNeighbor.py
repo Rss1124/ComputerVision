@@ -1,4 +1,4 @@
-# 最近邻分类器（Nearest Neighbor Classifier）是一种基于距离度量的分类器
+# 最近邻分类器（Nearest Neighbor ImageClassifier）是一种基于距离度量的分类器
 # 主要的思想: 将测试数据的每一个"测试样例"依次拿去与"训练集的样例"一一比较(曼哈顿距离),将"测试样例"分类到曼哈顿距离最近的"训练样例"
 
 import numpy as np
