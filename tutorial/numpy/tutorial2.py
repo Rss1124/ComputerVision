@@ -39,6 +39,7 @@ arr5 = np.empty([2, 2], dtype=student)
 print("生成一个2x2的矩阵")
 print(arr5)
 # 笔记4:
+# [2, 2]表示矩阵的shape,也可以使用元组(2, 2)
 # 除了empty函数还有zeros,ones函数.不同的函数初始化的数据不一样,
 # zeros是初始化为0,ones是初始化为1.而empty函数是随机从内存中取值.
 # 除此之外还可以指定数据类型,可以是结构体也可以是普通数据类型.
