@@ -35,12 +35,12 @@ class Classifier(object):
         y_pred = self.predict_label(dists, k)
         return y_pred
 
-    # def compute_distance_no_loops(self, X_test):
-    #     num_test = X_test.shape[0]
-    #     num_train = self.X_train.shape[0]
-    #     L2_dists = np.zeros((num_test, num_train))
-    #
-    #     return L2_dists
+    def compute_distance_no_loops(self, X_test):
+        print("compute_distance_no_loops")
+        L2_dists = np.sum(X_test ** 2, axis=1).reshape(-1, 1) + np.sum(self.X_train ** 2, axis=1) - 2 * np.dot(X_test, self.X_train.T)
+        print(L2_dists[0])
+        print(L2_dists.shape)
+        return L2_dists
 
     def compute_distance_one_loops(self, X_test):
         """
@@ -49,20 +49,27 @@ class Classifier(object):
         :param X_test: 测试集
         :return: 返回一个ndarray(所有"测试数据"各自到"训练数据"的欧式距离)
         """
+        print("compute_distance_one_loops")
         num_test = X_test.shape[0]
         num_train = self.X_train.shape[0]
         L2_dists = np.zeros((num_test, num_train))
         for i in range(num_test):
-            sub_distance_array = np.abs(self.X_train - X_test[i, :])
-            L2_dists[i] = np.sum(np.multiply(sub_distance_array, sub_distance_array), axis=1)
+            sub_distance_array = np.abs(X_test[i, :] - self.X_train)
+            L2_dists[i] = np.sum(sub_distance_array**2, axis=1)
+        print(L2_dists[0])
         return L2_dists
 
-    # def compute_distance_two_loops(self, X_test):
-    #     num_test = X_test.shape[0]
-    #     num_train = self.X_train.shape[0]
-    #     L2_dists = np.zeros((num_test, num_train))
-    #
-    #     return L2_dists
+    def compute_distance_two_loops(self, X_test):
+        print("compute_distance_two_loops")
+        num_test = X_test.shape[0]
+        num_train = self.X_train.shape[0]
+        L2_dists = np.zeros((num_test, num_train))
+        for i in range(num_test):
+            for j in range(num_train):
+                distance = np.sum((X_test[i] - self.X_train[j])**2)
+                L2_dists[i][j] = distance
+        print(L2_dists[0])
+        return L2_dists
 
     def predict_label(self, dists, k):
         """
