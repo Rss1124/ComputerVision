@@ -37,7 +37,7 @@ arr8 = np.array([[1, 1], [1, 1], [1, 1]])
 print("arr8:")
 print(arr8)
 arr9 = np.dot(arr7, arr8)
-print("arr7 点乘 arr8:")
+print("arr7 x arr8:")
 print(arr9)
 # 笔记3:
 # 函数dot()才是真正的矩阵乘法
