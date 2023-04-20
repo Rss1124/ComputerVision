@@ -27,7 +27,7 @@ print("输出arr[2][2]:")
 print(arr[2][2])
 # 笔记2: 如果对一个二维矩阵用一个下标去定位,会得到某一行的所有数据
 
-arr2 = arr[1:]
+arr2 = np.append(arr[:2], arr[2:], axis=0)
 print("使用冒号来对二维矩阵进行切割:")
 print(arr2)
 print("切割后的矩阵的shape:")
