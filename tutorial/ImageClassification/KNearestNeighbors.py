@@ -80,8 +80,8 @@ num_test = 500
 mask = list(range(num_test))
 X_test = X_test[mask]
 y_test = y_test[mask]
-X_train = np.reshape(X_train, (X_train.shape[0], -1))
-X_test = np.reshape(X_test, (X_test.shape[0], -1))
+X_train = np.reshape(X_train, (X_train.shape[0], -1))  # 训练集
+X_test = np.reshape(X_test, (X_test.shape[0], -1))  # 测试集
 
 """ K-Fold 交叉验证 """
 num_folds = 5
@@ -92,11 +92,11 @@ y_train_folds = np.split(y_train, indices_or_sections=num_folds)
 k_to_accuracies = {}
 for i in range(len(k_choices)):
     k = k_choices[i]
-    total_accuracy = 0
+    accuracies = []
     for j in range(num_folds):
         """ 将数据集分为训练集和验证集 """
-        X_validate_test = X_train_folds[j]
-        y_validate_test = y_train_folds[j]
+        X_validate_test = X_train_folds[j]  # 验证集
+        y_validate_test = y_train_folds[j]  # 验证集对应的标签
         if j == 0:
             X_validate_train = np.array(X_train_folds[j + 1:])
             y_validate_train = np.array(y_train_folds[j + 1:])
@@ -106,8 +106,8 @@ for i in range(len(k_choices)):
         else:
             X_validate_train = np.array(X_train_folds[:j])
             y_validate_train = np.array(y_train_folds[:j])
-        X_validate_train = np.reshape(X_validate_train, (-1, X_validate_train.shape[2]))
-        y_validate_train = np.reshape(y_validate_train, (-1,))
+        X_validate_train = np.reshape(X_validate_train, (-1, X_validate_train.shape[2]))  # 训练集
+        y_validate_train = np.reshape(y_validate_train, (-1,))  # 训练集对应的标签
 
         """ 训练模型 """
         KNN = Classifier()
@@ -115,20 +115,65 @@ for i in range(len(k_choices)):
 
         """ 对验证集进行预测,同时调整超参数 """
         predict_dists = KNN.predict(X_validate_test, k, 1)
+
+        """ 评估预测结果 """
         num_correct = np.sum(predict_dists == y_validate_test)
-        total_accuracy = total_accuracy + float(num_correct) / 1000
-    mean_accuracy = total_accuracy / num_folds
-    k_to_accuracies["k=" + str(k) + "; mean_accuracy==>"] = mean_accuracy
+        accuracies.append(float(num_correct) / 1000)
+    k_to_accuracies[k] = accuracies
 
 print(k_to_accuracies)
 
+""" 绘制不同K值下的"准确率的散点图","准确率的标准差","平均准确率" """
+for k in k_choices:
+    accuracies = k_to_accuracies[k]
+    plt.scatter([k] * len(accuracies), accuracies)
+    # 笔记1:
+    # scatter函数是用来绘制散点图的
+    # 第一个参数是x轴数据,第二个参数是y轴数据,因此我们将k作为x轴数据,accuracies(准确率列表)作为y轴数据,绘制成点的集合的的形式
+    # 笔记2:
+    # 在Python中,*符号除了表示乘法以外,还可以用于复制序列中的元素.
+    # 因此,[k] * len(accuracies)的含义是创建一个长度为len(accuracies)的列表,其中所有元素都是k.
+    # 例如,如果k=1,len(accuracies)=3,则[k] * len(accuracies)将生成[1, 1, 1]这样的列表.
 
-""" 对三种方法进行效率上的评估 """
+accuracies_mean = np.array([np.mean(v) for k,v in sorted(k_to_accuracies.items())])
+# 笔记1:
+# np.mean(v)计算了value(即准确率列表)的平均值,最终返回一个平均值列表,按照k值的顺序排列
+# k代表k值,v代表对应k值下的准确率列表.其中,k_to_accuracies是一个字典类型,key为k值,value为准确率列表v.
+# 因此,sorted(k_to_accuracies.items())会将字典按照key进行排序,返回一个由键值对元组组成的列表,列表中每个元素都是(key, value)的形式.
+
+accuracies_std = np.array([np.std(v) for k,v in sorted(k_to_accuracies.items())])
+# 笔记1:
+# np.std(v)的作用是计算不同k值下的准确率列表的标准差
+# 笔记2:
+# 标准差就是"方差"的算术平方根
+
+plt.errorbar(k_choices, accuracies_mean, yerr=accuracies_std)
+# 笔记1:
+# plt.errorbar会在给定的k值处,绘制出每个k值下的所有准确率,并在每个准确率上方和下方绘制误差条,误差条的长度表示对应准确率的标准差.
+
+plt.title('Cross-validation on k')
+plt.xlabel('k')
+plt.ylabel('Cross-validation accuracy')
+plt.show()
+
+""" 将模型的参数调整到最佳状态来预测'测试数据' """
+best_k = 1  # 通过绘制出来的图像找到平均准确率的参数k
+classifier = Classifier()
+classifier.train(X_train, y_train)
+y_test_pred = classifier.predict(X_test, k=best_k, num_loops=1)
+# 笔记1:
+# 如果用"完全向量化"的算法处理矩阵,那么内存开销会非常大,所以本次预测全程使用"部分向量化"的算法
+
+num_correct = np.sum(y_test_pred == y_test)
+accuracy = float(num_correct) / num_test
+print(accuracy)
+
+""" 对KNN的三种方法进行效率上的评估 """
 # two_loop_time = KNN.time_function(KNN.compute_distance_two_loops, X_test)
-# print('Two loop version took %f seconds' % two_loop_time)  # ==> 30.367281 seconds
+# print('Two loop version took %f seconds' % two_loop_time)  # 运行时间==> 30.367281 seconds
 #
 # one_loop_time = KNN.time_function(KNN.compute_distance_one_loops, X_test)
-# print('One loop version took %f seconds' % one_loop_time)  # ==> 20.551801 seconds
+# print('One loop version took %f seconds' % one_loop_time)  # 运行时间==> 20.551801 seconds
 #
 # no_loop_time = KNN.time_function(KNN.compute_distance_no_loops, X_test)
-# print('No loop version took %f seconds' % no_loop_time)  # ==> 16 seconds
+# print('No loop version took %f seconds' % no_loop_time)  # 运行时间==> 16 seconds
