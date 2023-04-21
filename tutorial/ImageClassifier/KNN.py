@@ -31,7 +31,7 @@ class Classifier(object):
         if num_loops == 0:
             dists = self.compute_distance_no_loops(X_test)
         elif num_loops == 1:
-            dists = self.compute_distance_one_loops(X_test)
+            dists = self.compute_distance_one_loops(X_test, k)
         else:
             dists = self.compute_distance_two_loops(X_test)
         y_pred = self.predict_label(dists, k)
@@ -77,7 +77,7 @@ class Classifier(object):
         # print("finish")
         return L2_dists
 
-    def compute_distance_one_loops(self, X_test):
+    def compute_distance_one_loops(self, X_test, k):
         """
         函数功能: 计算"测试数据"到各个"训练数据"的欧氏距离(L2_Distance) \n
         函数特点: 使用部分向量化计算(将for循环降低到一层)
@@ -89,7 +89,7 @@ class Classifier(object):
         num_train = self.X_train.shape[0]
         L2_dists = np.zeros((num_test, num_train))
         for i in range(num_test):
-            # print(str(i) + '/' + str(num_test))
+            print("k=" + str(k) + "==>" + str(i) + '/' + str(num_test))
             sub_distance_array = np.abs(X_test[i, :] - self.X_train)
             L2_dists[i] = np.sum(sub_distance_array ** 2, axis=1)
         return L2_dists
