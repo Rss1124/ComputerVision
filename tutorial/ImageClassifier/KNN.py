@@ -93,6 +93,13 @@ class Classifier(object):
             sub_distance_array = np.abs(X_test[i, :] - self.X_train)
             L2_dists[i] = np.sum(sub_distance_array ** 2, axis=1)
         return L2_dists
+        # 问题1: 什么是向量化计算?
+        # 向量化计算由numpy库提供
+        # 向量化计算是一种利用矩阵运算的方式,将多个数据（例如数组、矩阵）组成的集合看成一个整体,
+        # 并且通过一些数学运算实现对整个集合的操作，从而在一次计算中处理多个数据的方法,
+        # 通常情况下,向量化计算可以大幅提高程序运行的效率.(Tip: 会占用大量的内存开销)
+        # 笔记1:
+        # 向量化计算的特点: 能够一次性并行处理大量数据是
 
     def compute_distance_two_loops(self, X_test):
         """
