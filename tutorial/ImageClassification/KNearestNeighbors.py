@@ -48,27 +48,27 @@ X_test = X_test.reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1).astype("uint8")
 # print(arr)
 
 """ 将部分图片数据集可视化 """
-# plt.imshow(X_train[1])
-# plt.title('Label: {}'.format(y_train[1]))
-# plt.show()
-#
-# classes = ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-# num_classes = len(classes)
-# samples_per_class = 7
-# for y, cls in enumerate(classes):
-#     # 笔记1: enumerate(classes)可以将y, cls组成键值对(y:cls)==>(0:plane)(1:car)(2:bird)....
-#     idxs = np.flatnonzero(y_train == y)
-#     # 笔记2: (y_train==y) 可以把"标签相同的数据"的下标提取出来,其实就是分类(相同标签的数据在一个列表中)
-#     idxs = np.random.choice(idxs, samples_per_class, replace=False)
-#     for i, idx in enumerate(idxs):
-#         plt_idx = i * num_classes + y + 1
-#         plt.subplot(samples_per_class, num_classes, plt_idx)
-#         # 笔记3: subplot()是用于在一张图中绘制多个子图的
-#         plt.imshow(X_train[idx].astype('uint8'))
-#         plt.axis('off')
-#         if i == 0:
-#             plt.title(cls)
-# plt.show()
+plt.imshow(X_train[1])
+plt.title('Label: {}'.format(y_train[1]))
+plt.show()
+
+classes = ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+num_classes = len(classes)
+samples_per_class = 7
+for y, cls in enumerate(classes):
+    # 笔记1: enumerate(classes)可以将y, cls组成键值对(y:cls)==>(0:plane)(1:car)(2:bird)....
+    idxs = np.flatnonzero(y_train == y)
+    # 笔记2: (y_train==y) 可以把"标签相同的数据"的下标提取出来,其实就是分类(相同标签的数据在一个列表中)
+    idxs = np.random.choice(idxs, samples_per_class, replace=False)
+    for i, idx in enumerate(idxs):
+        plt_idx = i * num_classes + y + 1
+        plt.subplot(samples_per_class, num_classes, plt_idx)
+        # 笔记3: subplot()是用于在一张图中绘制多个子图的
+        plt.imshow(X_train[idx].astype('uint8'))
+        plt.axis('off')
+        if i == 0:
+            plt.title(cls)
+plt.show()
 
 """ 削减数据集的规模,减少训练时间 """
 num_training = 5000
@@ -166,7 +166,7 @@ y_test_pred = classifier.predict(X_test, k=best_k, num_loops=1)
 
 num_correct = np.sum(y_test_pred == y_test)
 accuracy = float(num_correct) / num_test
-print(accuracy)
+print("对测试集的预测准确率: " + str(accuracy))
 
 """ 对KNN的三种方法进行效率上的评估 """
 # two_loop_time = KNN.time_function(KNN.compute_distance_two_loops, X_test)
