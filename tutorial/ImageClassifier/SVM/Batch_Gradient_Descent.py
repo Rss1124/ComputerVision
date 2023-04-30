@@ -29,3 +29,26 @@ def svm_loss_naive(W, X, y, reg):
     # 而在计算梯度时,需要对这个正则项求导数,由于平方项求导后系数为2,所以在计算正则项的梯度时,需要乘以2,得到的结果就是2 * W
     return loss, dW
 
+def svm_loss_vectorized(W, X, y, reg):
+    loss = 0.0
+    dW = np.zeros(W.shape)
+    """ 计算分数矩阵 """
+    scores = X.dot(W)
+    """ 正确分类的分数 """
+    correct_scores = scores[np.arange(scores.shape[0]), y].reshape(-1, 1)
+    """ 获取各个训练样本的损失 """
+    margins = np.maximum(0, scores - correct_scores + 1)
+    margins[np.arange(margins.shape[0]), y] = 0
+    """ 计算整体的平均损失 """
+    loss = np.sum(margins) / X.shape[0] + reg * np.sum(W * W)
+    binary = margins
+    binary[margins > 0] = 1
+    row_sum = np.sum(binary, axis=1)
+    binary[np.arange(X.shape[0]), y] -= row_sum
+    # 笔记1:
+    # binary[np.arange(X.shape[0]), y]表示在binary数组中选取每个样本的正确类别所在行的元素
+    print(X.T)
+    print(binary)
+    dW = X.T.dot(binary) / X.shape[0] + reg * 2 * W
+    return loss, dW
+
