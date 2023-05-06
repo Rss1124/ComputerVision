@@ -24,7 +24,7 @@ class Classifier(object):
         :param learning_rate: 每次进行梯度下降的步长
         :param reg: 正则化系数
         :param num_iters: 模型进行迭代的次数
-        :param batch_size: 参与"权值矩阵"调整的样本数量
+        :param batch_size: 参与"权重矩阵"调整的样本数量
         :param verbose: 是否显示进度条
         :return: 损失集(1*num_iters的二维矩阵)
         """
@@ -32,7 +32,7 @@ class Classifier(object):
         # 笔记1:
         # X.shape有两个值, num_train和dim会分别获取X.shape[0]与X.shape[1]
         num_classes = np.max(y) + 1
-        """ 随机初始化一个权值矩阵(M*C的二维矩阵) """
+        """ 随机初始化一个权重矩阵(M*C的二维矩阵) """
         if self.W is None:
             self.W = np.random.randn(dim, num_classes) * 0.001
         """ 随机梯度下降 """
