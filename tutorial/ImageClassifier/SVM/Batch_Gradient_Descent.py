@@ -5,11 +5,11 @@ def svm_loss_naive(W, X, y, reg):
     """
     函数功能: 计算损失和梯度矩阵(一层for循环)
 
-    :param W: 权值矩阵(M*C的二维矩阵)
-    :param X: 训练集(N*M的二维矩阵)
+    :param W: 权值矩阵(M*C的二维矩阵: M表示样本有多少个特征, C表示数据集有多少分类)
+    :param X: 训练集(N*M的二维矩阵: N表示有多少样本, M表示样本有多少个特征)
     :param y: 训练集的标签(1*N的二维矩阵)
     :param reg: 正则化系数
-    :return:
+    :return: 损失值和梯度矩阵
     """
     dW = np.zeros(W.shape)
     num_classes = W.shape[1]  # 分类的数量C
@@ -50,11 +50,11 @@ def svm_loss_vectorized(W, X, y, reg):
     """
     函数功能: 计算损失值和梯度矩阵(向量化计算)
 
-    :param W: 权值矩阵(M*C的二维矩阵)
-    :param X: 训练集(N*M的二维矩阵)
+    :param W: 权值矩阵(M*C的二维矩阵: M表示样本有多少个特征, C表示数据集有多少分类)
+    :param X: 训练集(N*M的二维矩阵: N表示有多少样本, M表示样本有多少个特征)
     :param y: 训练集的标签(1*N的二维矩阵)
     :param reg: 正则化系数
-    :return:
+    :return: 损失值和梯度矩阵
     """
     loss = 0.0
     dW = np.zeros(W.shape)
@@ -83,5 +83,7 @@ def svm_loss_vectorized(W, X, y, reg):
     binary[np.arange(X.shape[0]), y] -= row_sum
     # 笔记6:
     # binary[np.arange(X.shape[0]), y]表示在binary数组中选取每个样本的正确类别的所在位置(列)
+    # 笔记7:
+    # 假设loss1 = W0(c1*X1 + c2*X2 + ... + ci*Xi), binary矩阵存储的就是c1,c2,...ci的值
     dW = X.T.dot(binary) / X.shape[0] + reg * 2 * W
     return loss, dW
