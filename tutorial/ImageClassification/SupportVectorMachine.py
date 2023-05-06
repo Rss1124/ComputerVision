@@ -50,7 +50,7 @@ for y, cls in enumerate(classes):
             plt.title(cls)
 plt.show()
 
-""" 将数据集分为训练集,验证集,测试集 """
+""" 将数据集分为训练集,验证集,测试集,开发集 """
 X_train = X_train.reshape(X_train.shape[0], -1)
 num_training = 9000
 num_validation = 1000
@@ -81,7 +81,7 @@ y_test = y_test[mask]  # 测试集_标签
 """ 对数据集进行预处理 """
 mean_image = np.mean(X_train, axis=0)
 # 笔记1:
-# 这里的mean_image有3072个数值(每个图片都是3*32*32的),每个数值代表所有图片的某个像素块的平均值
+# 这里的mean_image有3072个数值(每个图片都是3*32*32的),每个数值代表所有图片的某个像素块(特征)的平均值
 X_train = X_train - mean_image
 X_val = X_val - mean_image
 X_test = X_test - mean_image
@@ -105,7 +105,7 @@ X_dev = np.hstack([X_dev, np.ones((X_dev.shape[0], 1))])
 # 现在我们给W加上一个偏置维度,那么我们的公式就变成了: f(x) = w1.x1 + ... + wi.xi + b(偏置值)
 # SVM的训练过程就是不断调整W和b,使得模型在未见过的测试数据上能够具有很好的泛化能力.
 
-""" 随机生成一个权值矩阵 """
+""" 随机生成一个权重矩阵 """
 W = np.random.randn(3073, 10) * 0.0001
 
 """ 使用开发集训练一次模型,验证梯度下降算法并获取"损失值"和"梯度矩阵" """
@@ -224,7 +224,7 @@ y_test_pred = best_svm.predict(X_test)
 test_accuracy = np.mean(y_test == y_test_pred)
 print('final test set accuracy: %f' % test_accuracy)
 
-""" 可视化权值矩阵 """
+""" 可视化权重矩阵 """
 w = best_svm.W[:-1, :]
 # 笔记1:
 # W[:-1, :] == W[:W.shape[0]-1, :]
@@ -246,5 +246,5 @@ for i in range(10):
     plt.imshow(wimg.astype('uint8'))
     plt.axis('off')
     plt.title(classes[i])
-plt.suptitle("权值矩阵可视化")
+plt.suptitle("权重矩阵可视化")
 plt.show()
