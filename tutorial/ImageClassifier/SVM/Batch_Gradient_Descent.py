@@ -16,15 +16,15 @@ def svm_loss_naive(W, X, y, reg):
     num_train = X.shape[0]  # 训练集的数据量N
     loss = 0.0
     for i in range(num_train):
-        # 计算每个训练数据的不同分类的分数
+        """ 计算每个训练数据的不同分类的分数 """
         scores = X[i].dot(W)
-        # 找到训练数据的正确分类的分数
+        """ 找到训练数据的正确分类的分数 """
         correct_class_score = scores[y[i]]
         for j in range(num_classes):
             if j == y[i]:
                 continue
             else:
-                margin = scores[j] - correct_class_score + 1
+                margin = scores[j] - correct_class_score + 1  # 损失函数: Σ(第j个分类的分数 - 正确分类的分数 + 1)
             if margin > 0:
                 """ 计算损失 """
                 loss += margin
@@ -37,7 +37,7 @@ def svm_loss_naive(W, X, y, reg):
     loss /= num_train  # 求平均loss
     loss += reg * np.sum(W * W)  # 加入正则项对模型进行惩罚
     # 笔记1:
-    # 正则化系数越大对模型的惩罚就越高,模型就会越复杂,泛化能力就越弱
+    # 正则项越大对模型的惩罚就越高,模型就会越趋向复杂,泛化能力就越弱,可是正则项如果太小,模型又会太简单,从而欠拟合
     dW /= num_train
     dW += reg * 2 * W
     # Q1:为什么dW的正则项是 2 * W？
