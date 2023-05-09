@@ -82,7 +82,11 @@ def get_CIFAR10_data(
     """
 
     """ 加载 CIFAR-10 数据集  """
-    cifar10_dir = "tutorial/DataSet/cifar-10-batches-py"  # 数据集地址
+    # 获取当前项目的绝对路径
+    current_path = os.path.abspath(__file__)
+    root_path = os.path.dirname(current_path)
+    project_dir = os.path.abspath(os.path.dirname(root_path))
+    cifar10_dir = project_dir + "/tutorial/DataSet/cifar-10-batches-py"  # 数据集地址
     X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
 
     """ 将数据划分为训练集,验证集,测试集,开发集 """
