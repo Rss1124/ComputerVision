@@ -1,6 +1,6 @@
 import numpy as np
 
-from tutorial.ImageClassifier.SVM.Batch_Gradient_Descent import svm_loss_vectorized
+from tutorial.ImageClassifier.SVM.Multi_HingeLoss import svm_loss_vectorized
 
 
 class Classifier(object):
