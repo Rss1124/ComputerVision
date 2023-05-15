@@ -9,6 +9,7 @@ class Classifier(object):
 
     def train(
             self,
+            f,
             X,
             y,
             learning_rate=0.001,
@@ -19,6 +20,7 @@ class Classifier(object):
     ):
         """
 
+        :param f: 线性分类器所用的损失函数名称
         :param X: 训练集(N*M的二维矩阵: N表示有多少样本, M表示样本有多少个特征)
         :param y: 训练集的标签(1*N的二维矩阵)
         :param learning_rate: 每次进行梯度下降的步长
@@ -43,7 +45,7 @@ class Classifier(object):
             mask = np.random.choice(num_train, batch_size, replace=True)
             X_batch = X[mask]
             y_batch = y[mask]
-            loss, grad = svm_loss_vectorized(self.W, X_batch, y_batch, reg)
+            loss, grad = f(self.W, X_batch, y_batch, reg)
             loss_history.append(loss)
             self.W -= grad * learning_rate
             if verbose and it % 100 == 0:
