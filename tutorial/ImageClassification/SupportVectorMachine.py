@@ -4,7 +4,7 @@ import time
 import matplotlib.pyplot as plt
 import pickle
 import numpy as np
-from tutorial.ImageClassifier.SVM.Batch_Gradient_Descent import svm_loss_naive, svm_loss_vectorized
+from tutorial.ImageClassifier.SVM.Multi_HingeLoss import svm_loss_naive, svm_loss_vectorized
 from BaseUtils.gradient_check import grad_check_sparse
 from tutorial.ImageClassifier.SVM.Linear_Classifier import Classifier
 
