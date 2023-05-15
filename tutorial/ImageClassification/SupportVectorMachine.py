@@ -162,7 +162,7 @@ svm = Classifier()
 
 """ 评估随机梯度下降的时间效率 """
 tic = time.time()
-loss_hist = svm.train(X_train, y_train, learning_rate=1e-7, reg=2.5e4,
+loss_hist = svm.train(f=svm_loss_vectorized, X=X_train, y=y_train, learning_rate=1e-7, reg=2.5e4,
                       num_iters=1500, verbose=True)
 toc = time.time()
 print('That took %fs' % (toc - tic))
@@ -191,7 +191,7 @@ for i in k_regs:
         params = (i, j)
         """ 训练模型 """
         svm_val = Classifier()
-        loss_hist = svm_val.train(X=X_train, y=y_train, learning_rate=j,
+        loss_hist = svm_val.train(f=svm_loss_vectorized, X=X_train, y=y_train, learning_rate=j,
                                   reg=i, num_iters=400, batch_size=200, verbose=False)
         """ 评估模型准确率 """
         y_train_pred = svm_val.predict(X_train)
