@@ -13,21 +13,24 @@ def load_pickle(f):
         return pickle.load(f)
     elif version[0] == "3":
         return pickle.load(f, encoding="latin1")
+        # 笔记1:
+        # encoding="latin1"：使用该选项时,文本数据将使用 Latin-1 编码进行编码和解码.Latin-1 是一种字符编码,
+        # 它将每个字符映射到一个字节,范围是 0 到 255.这个编码可以覆盖所有的 ASCII 字符,以及许多其他常见字符.
     raise ValueError("invalid python version: {}".format(version))
 
 
 def load_CIFAR_batch(filename):
     """
-    函数功能: 从buffer流中提取数据信息和标签信息
+    函数功能: 从 Latin-1编码中提取数据信息和标签信息
 
     :param filename: 数据集所在的url
-    :return: 数据集以及对应的标签
+    :return: shape为(N,H,W,C)的数据集以及对应的标签
     """
     with open(filename, "rb") as f:
         datadict = load_pickle(f)
         # 笔记1:
         # 在Python中,pickle 是一种用于序列化和反序列化对象的标准模块.
-        # 序列化(serialization)指将对象转换为字节流(byte stream),以便将其存储在文件中或通过网络传输.
+        # 序列化(serialization)指将对象转换为字节流(byte stream)或者编码,以便将其存储在文件中或通过网络传输.
         # 反序列化(deserialization)指将字节流转换回对象。
         X = datadict["data"]
         Y = datadict["labels"]
@@ -111,16 +114,16 @@ def get_CIFAR10_data(
         X_test -= mean_image
         X_dev -= mean_image
 
-    """ 将shape变为(N,C,H,W),以便进行可视化 """
-    X_train = X_train.transpose(0, 3, 1, 2).copy()
-    X_val = X_val.transpose(0, 3, 1, 2).copy()
-    X_test = X_test.transpose(0, 3, 1, 2).copy()
-    X_dev = X_dev.transpose(0, 3, 1, 2).copy()
+    """ 将shape变为(N,C,H,W) """
+    X_train_c = X_train.transpose(0, 3, 1, 2).copy()
+    X_val_c = X_val.transpose(0, 3, 1, 2).copy()
+    X_test_c = X_test.transpose(0, 3, 1, 2).copy()
+    X_dev_c = X_dev.transpose(0, 3, 1, 2).copy()
     # 笔记1:
     # 在修改数组时,如果想保留原数组,需要使用 copy() 方法创建一个新的数组对象.
     # 如果不使用 copy() 方法,而是直接对数组进行赋值或修改,会对原数组造成影响,这可能会导致错误或不可预测的行为.
 
-    return X_train, y_train, X_val, y_val, X_test, y_test, X_dev, y_dev
+    return X_train_c, y_train, X_val_c, y_val, X_test_c, y_test, X_dev_c, y_dev
 
 
 def load_tiny_imagenet(path, dtype=np.float32, subtract_mean=True):
