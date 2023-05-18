@@ -2,7 +2,9 @@ import numpy as np
 
 def affine_forward(x, w, b):
     """
-    函数功能: 矩阵乘法的前向传播,计算分数矩阵,获取缓存数据
+    Affine层(全连接层):
+        Affine层接收输入数据，并将其与权重矩阵相乘，然后添加偏置向量，这个操作可以用数学公式表示为:
+        out = x.dot(w) + b，Affine层实现了线性变换，将输入数据映射到一个新的空间。
 
     input:
         - x: numpy数组(N, d_1, ..., d_k)
@@ -22,7 +24,9 @@ def affine_forward(x, w, b):
 
 def affine_backward(dout, cache):
     """
-    函数功能: 矩阵乘法的反向传播,计算当前神经元的梯度
+    ReLU激活函数:
+        ReLU（Rectified Linear Unit）激活函数是一种非线性函数，被广泛用于神经网络中。ReLU函数的定义是f(x) = max(0, x)，
+        即将小于零的输入值变为零，保持非负输入值不变。ReLU函数引入了非线性性质，使得神经网络可以学习更加复杂的函数映射。
 
     input:
         - dout: 上一层神经元的梯度(N, M)
