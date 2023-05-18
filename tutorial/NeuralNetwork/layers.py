@@ -28,9 +28,9 @@ def affine_backward(dout, cache):
         - dout: 上一层神经元的梯度(N, M)
         - cache: 上一层神经元的缓存
     return:
-        - dx: x的梯度 * dout (N, D)
-        - dw: w的梯度 * dout (D, M)
-        - db: b的梯度 * dout (M,)
+        - dx: x的梯度 (N, D)
+        - dw: w的梯度 (D, M)
+        - db: b的梯度 (M,)
     """
 
     dx, dw, db = None, None, None
