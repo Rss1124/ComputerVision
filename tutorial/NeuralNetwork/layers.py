@@ -37,8 +37,8 @@ def affine_backward(dout, cache):
     x, w, b = cache
     N = x.shape[0]
     x_reshaped = x.reshape(N, -1)  # 将x转变为(N, D)方便进行矩阵运算
-    dx = dout.dot(w.T.reshape(x.shape))  # 最后需要将dx的shape还原为(N, d_1, ..., d_k)
-    dw = x_reshaped.T.dot(w)
+    dx = dout.dot(w.T).reshape(x.shape)  # 最后需要将dx的shape还原为(N, d_1, ..., d_k)
+    dw = x_reshaped.T.dot(dout)
     db = np.sum(dout, axis=0)
     return dx, dw, db
 
@@ -123,7 +123,7 @@ def softmax_loss(x, y):
     N = x.shape[0]
     scores = x.copy()
     exp_scores = np.exp(scores)
-    correct_exp_scores = exp_scores[np.arange(N), y].reshape(-1,1)
+    correct_exp_scores = exp_scores[np.arange(N), y]
     p_scores = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
     """ 计算loss """
     loss = -1 * np.log(p_scores[np.arange(N), y])
