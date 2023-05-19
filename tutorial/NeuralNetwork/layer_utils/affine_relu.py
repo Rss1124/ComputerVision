@@ -1,5 +1,8 @@
 import numpy as np
 
+from tutorial.NeuralNetwork.layer_utils.affine import affine_forward, affine_backward
+from tutorial.NeuralNetwork.layer_utils.relu import relu_forward, relu_backward
+
 """ ------------------------------------------ affine + relu 的网络层结构 ------------------------------------------ """
 # 笔记1:
 # affine_relu是一种常用的网络层结构,用于构建神经网络模型中的隐藏层.它由两个部分组成: Affine层和ReLU激活函数.
