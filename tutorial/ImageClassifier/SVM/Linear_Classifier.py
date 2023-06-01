@@ -1,6 +1,7 @@
 import numpy as np
 
 from tutorial.ImageClassifier.SVM.Multi_HingeLoss import svm_loss_vectorized
+from tutorial.ImageClassifier.SVM.softmax import softmax_loss_vectorized
 
 
 class Classifier(object):
@@ -9,7 +10,7 @@ class Classifier(object):
 
     def train(
             self,
-            f,
+            function,
             X,
             y,
             learning_rate=0.001,
@@ -19,8 +20,9 @@ class Classifier(object):
             verbose=False,
     ):
         """
+        函数功能: 训练模型
 
-        :param f: 线性分类器所用的损失函数名称
+        :param function: 线性分类器所用的损失函数名称,目前提供(softmax和svm)
         :param X: 训练集(N*M的二维矩阵: N表示有多少样本, M表示样本有多少个特征)
         :param y: 训练集的标签(1*N的二维矩阵)
         :param learning_rate: 每次进行梯度下降的步长
@@ -30,6 +32,13 @@ class Classifier(object):
         :param verbose: 是否显示进度条
         :return: 损失集(1*num_iters的二维矩阵)
         """
+        if function == "softmax":
+            f = softmax_loss_vectorized
+        elif function == "svm":
+            f = svm_loss_vectorized
+        else:
+            print("invalid function's name")
+            return
         num_train, dim = X.shape
         # 笔记1:
         # X.shape有两个值, num_train和dim会分别获取X.shape[0]与X.shape[1]
@@ -53,6 +62,12 @@ class Classifier(object):
         return loss_history
 
     def predict(self, X):
+        """
+        函数功能: 预测模型
+
+        :param X: 要拿去预测的数据集
+        :return: 打好标签的一维数组(预测结果)
+        """
         y_pred = np.zeros(X.shape[0])
         scores = X.dot(self.W)
         y_pred = np.argmax(scores, axis=1)
