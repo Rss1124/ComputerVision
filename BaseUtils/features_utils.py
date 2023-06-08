@@ -99,15 +99,15 @@ def hog_feature(im):
         image = np.at_least_2d(im)
 
     sx, sy = image.shape  # 图像大小
-    orientations = 9
+    orientations = 36
     # 笔记1:
     # orientation(梯度箱数)
     # 梯度是指图像中像素值变化最剧烈的方向。梯度箱数也就是梯度方向的数量。
-    # 在这种情况下，使用9个梯度方向范围（或9个角度范围）将梯度方向离散化。因此，对于每个像素的梯度方向，它将被分配到9个分箱之一。
+    # 在这种情况下，使用36个梯度方向范围（36个角度范围）将梯度方向离散化。因此，对于每个像素的梯度方向，它将被分配到36个分箱之一。
     # 通过将梯度方向离散化为多个分箱，可以将梯度信息转换为直方图形式，以便表示图像中的梯度分布情况，并用于后续的特征提取和图像分类任务。
     cx, cy = (8, 8)  # 细胞的大小
     # 笔记2:
-    # 在计算机视觉和图像处理中，"细胞"（cell）通常指的是图像的一个局部区域或分块。
+    # 在计算机视觉和图像处理中，"细胞"（cell）通常指的是图像的一个局部区域或分块（spatial region）
     # 这些局部区域通常是规则的矩形或正方形，用于对图像进行分割和处理，每个细胞通常会提取一组特征，例如颜色直方图、梯度方向直方图等，
     # 以描述该细胞内部的局部图像信息
     n_cellsx = int(np.floor(sx / cx))  # 在x轴上的细胞个数
@@ -132,20 +132,24 @@ def hog_feature(im):
     # 计算梯度的大小使用L2距离公式
     # 计算梯度的方向需要用到反正切函数，arctan * (180/pi) = 角度值
     grad_mag = np.sqrt(gx ** 2 + gy ** 2)  # 梯度值
-    grad_ori = np.arctan2(gy, (gx + 1e-15)) * (180 / np.pi) + 90  # 梯度方向(角度)
+    grad_ori = np.arctan2(gy, (gx + 1e-15)) * (180 / np.pi) + 180  # 梯度方向(角度)
     # 笔记6:
-    # 在角度值后面+90，是为了调整角度范围，将最终的角度范围调整在[0, 180]
+    # np.arctan2函数的值域为[-pi,pi]
+    # 笔记7:
+    # 在角度值后面+180，是为了调整角度范围，将最终的角度范围调整在[0°, 360°]
+    # 笔记8:
+    # "gx + 1e-15"是为了防止在计算角度的时候出现分母为0的情况
 
-    """ 初始化方向直方图 """
+    """ 初始化梯度方向直方图 """
     orientation_histogram = np.zeros((n_cellsx, n_cellsy, orientations))
 
-    """ 将一个图像的所有特征分为9种情况(梯度箱数的值) """
+    """ 将一个图像的所有特征分为36种情况(梯度箱数的值) """
     for i in range(orientations):
-        """ 将角度(180°)切割为9份,每份代表一个梯度方向区间 """
-        temp_ori = np.where(grad_ori < 180 / orientations * (i + 1), grad_ori, 0)
-        temp_ori = np.where(grad_ori >= 180 / orientations * i, temp_ori, 0)
+        """ 将角度(360°)切割为36份,每份代表一个梯度方向区间 """
+        temp_ori = np.where(grad_ori < 360 / orientations * (i + 1), grad_ori, 0)
+        temp_ori = np.where(grad_ori >= 360 / orientations * i, temp_ori, 0)
         # 笔记7:
-        # 每次循环会将grad_ori区间内[180 / orientations * i , 180 / orientations * (i + 1)]的值保留,其他区间的值设为0
+        # 每次循环会将grad_ori区间内[360 / orientations * i , 360 / orientations * (i + 1)]的值保留,其他区间的值设为0
         # 这两步操作可以将梯度方向 grad_ori 分配到离散的方向区间中，使得每个梯度方向只在对应的区间内有非零值
         # 通过这种方式，可以对梯度方向进行量化和编码，以便后续的特征提取和分析
         """ 获取对应梯度方向区间里面的梯度值 """
@@ -157,7 +161,7 @@ def hog_feature(im):
         # uniform_filter 是一种平滑滤波器，用于对输入数组进行平滑处理。
         # 该函数的结果是一个与输入数组大小相同的数组，其中的每个元素表示对应位置周围窗口内数值的均值。
         # 如果过滤器处在图像的边缘，会通过几种边界处理模式来处理，默认使用reflect模式
-        """ 将处在[round(cx / 2):: cx, round(cy / 2):: cy]位置的元素提取出来,用于最终的梯度直方图 """
+        """ 将8*8像素块中处在中心[round(cx / 2):: cx, round(cy / 2):: cy]位置的元素提取出来,将它看作最重要的影响因子 """
         orientation_histogram[:, :, i] = orientation_histogram_temp[
             round(cx / 2) :: cx, round(cy / 2) :: cy
         ].T
@@ -169,13 +173,9 @@ def hog_feature(im):
         #  [4, 5, 6],   ==>    [1, 1, 2],  ==> 所以[0][0]位置的值应该是(1+1+2+1+1+2+4+4+5)/9 = 2
         #  [7, 8, 9]]          [4, 4, 5]]
 
-
-    # 笔记10:
-    # ravel() 是将多维数组 orientation_histogram 平铺（展开）为一维数组的操作
-
-    # plt.figure(figsize=(10, 8))
+    # plt.figure(figsize=(20, 18))
     # for i in range(orientation_histogram.shape[2]):
-    #     plt.subplot(3, 3, i + 1)  # 根据直方图通道数量调整子图位置
+    #     plt.subplot(6, 6, i + 1)  # 根据直方图通道数量调整子图位置
     #     plt.imshow(orientation_histogram[:, :, i])
     #     plt.colorbar()  # 添加颜色条
     #
@@ -187,6 +187,8 @@ def hog_feature(im):
     # plt.tight_layout()
     # plt.show()
 
+    # 笔记10:
+    # ravel() 是将多维数组 orientation_histogram 平铺（展开）为一维数组的操作
     return orientation_histogram.ravel()
 
 def color_histogram_hsv(im, nbin=10, xmin=0, xmax=255, normalized=True):
