@@ -11,19 +11,24 @@ X_val = X_val.transpose(0,2,3,1)
 X_test = X_test.transpose(0,2,3,1)
 X_dev = X_dev.transpose(0,2,3,1)
 num_color_bins = 10
+
 """ 初始化"特征函数"数组 """
 # feature_fns = [hog_feature, lambda img: color_histogram_hsv(img, nbin=num_color_bins)]
 feature_fns = [hog_feature, color_histogram_hsv]
+
 """ 对数据集使用不同特征函数进行特征处理 """
 X_train_feats = extract_features(X_train, feature_fns, verbose=True)
 X_val_feats = extract_features(X_val, feature_fns)
 X_test_feats = extract_features(X_test, feature_fns)
-mean_feat = np.mean(X_train_feats, axis=0, keepdims=True)
+
+""" 对使用这些新的特征之前,再进行一次归一化,来提高特征的表达能力 """
+# 笔记1:
+# 在这里采用了Z-score标准化,即先减去平均值,再除以标准差,这种归一化方法可以使数据的分布更接近正态分布
+mean_feat = np.mean(X_train_feats, axis=0, keepdims=True)  # 平均值
 X_train_feats -= mean_feat
 X_val_feats -= mean_feat
 X_test_feats -= mean_feat
-
-std_feat = np.std(X_train_feats, axis=0, keepdims=True)
+std_feat = np.std(X_train_feats, axis=0, keepdims=True)  # 标准差
 X_train_feats /= std_feat
 X_val_feats /= std_feat
 X_test_feats /= std_feat
