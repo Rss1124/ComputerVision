@@ -24,12 +24,21 @@ class Solver(object):
               但所有更新规则都需要一个'learning_rate'参数，因此应该始终存在
             - lr_decay: 步长衰减的标量;在每次迭代之后，步长会乘以这个值
             - batch_size: 随机梯度下降中，每次用来训练的小批量的大小
-            - num_epochs: 迭代次数
+            - num_epochs: 时代数(solver的迭代次数)
             - print_every: 整数; 每迭代print_every次之后就打印一次损失值
             - verbose: 布尔值; 如果设置为false，则在训练期间不会打印输出
             - num_train_samples: 训练样本的数量；默认值是1000；设置为None则用整个训练集
             - num_val_samples: 验证样本的数量；默认值为None，使用整个验证集
             - checkpoint_name: 如果不是None，那么在每次迭代时保存模型检查点
+
+        其他自动初始化的参数:
+            - epoch: 记录当前的时代
+            - best_val_acc: 记录最高的验证集正确率
+            - best_params: 记录模型里面的参数(W1,W2,b1,b2等权重矩阵信息)
+            - loss_history: 记录训练过程中的loss
+            - train_acc_history: 记录训练过程中的训练集的正确率
+            - val_acc_history: 记录训练过程中的验证集的正确率
+            - optim_configs: 配置文件,里面有更新梯度矩阵的方法,步长等等
         """
 
         # 笔记1:
@@ -59,7 +68,7 @@ class Solver(object):
             extra = ", ".join('"%s"' % k for k in list(kwargs.keys()))
             raise ValueError("Unrecognized arguments %s" % extra)
 
-        """ 初始化后续所需的变量 """
+        """ 其他参数 """
         self.epoch = 0
         self.best_val_acc = 0
         self.best_params = {}
@@ -171,7 +180,7 @@ class Solver(object):
 
         num_train = self.X_train.shape[0]
         iterations_per_epoch = max(num_train // self.batch_size, 1)
-        num_iterations = self.num_epochs * iterations_per_epoch
+        num_iterations = self.num_epochs * iterations_per_epoch  # 所花费的总的迭代次数
 
         for it in range(num_iterations):
             self._step()
@@ -187,7 +196,7 @@ class Solver(object):
             if end_epoch:
                 self.epoch += 1
                 for k in self.optim_configs:
-                    """ 每完成一次随机梯度下降就衰减一次步长 """
+                    """ 每经历一个"时代"就衰减一次步长 """
                     self.optim_configs[k]["learning_rate"] *= self.lr_decay
 
             """ 检查训练集和验证集的准确率 """
@@ -213,6 +222,5 @@ class Solver(object):
                         self.best_params[k] = v.copy()
 
         self.model.params = self.best_params
-
 
 
