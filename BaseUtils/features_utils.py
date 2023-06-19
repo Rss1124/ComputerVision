@@ -161,10 +161,6 @@ def hog_feature(im):
         # uniform_filter 是一种平滑滤波器，用于对输入数组进行平滑处理。
         # 该函数的结果是一个与输入数组大小相同的数组，其中的每个元素表示对应位置周围窗口内数值的均值。
         # 如果过滤器处在图像的边缘，会通过几种边界处理模式来处理，默认使用reflect模式
-        """ 将8*8像素块中处在中心[round(cx / 2):: cx, round(cy / 2):: cy]位置的元素提取出来,将它看作最重要的影响因子 """
-        orientation_histogram[:, :, i] = orientation_histogram_temp[
-            round(cx / 2) :: cx, round(cy / 2) :: cy
-        ].T
         # 笔记9:
         # 当使用 "reflect" 模式时，窗口在边界处通过反射地复制邻近的像素来进行扩展。
         # 这意味着窗口内的像素值是通过将窗口映射到输入数组的边界处，并利用边界像素的反射镜像来计算的。
@@ -172,6 +168,13 @@ def hog_feature(im):
         # [[1, 2, 3],         [[1, 1, 2],
         #  [4, 5, 6],   ==>    [1, 1, 2],  ==> 所以[0][0]位置的值应该是(1+1+2+1+1+2+4+4+5)/9 = 2
         #  [7, 8, 9]]          [4, 4, 5]]
+        """ 将每个8*8像素块中处在中心[(cx / 2), (cy / 2)]位置的元素提取出来,将它看作最重要的影响因子 """
+        orientation_histogram[:, :, i] = orientation_histogram_temp[
+            round(cx / 2):: cx, round(cy / 2):: cy
+        ].T
+        # 笔记10:
+        # orientation_histogram_temp[round(cx / 2) :: cx, round(cy / 2) :: cy] 会使用一个size为(cx, cy)的滤波器,步长为cy
+        # 然后从左往右,从上往下的扫描,每次都会提取位于扫描区域的中心位置[(cx / 2), (cy / 2)]的元素
 
     # plt.figure(figsize=(20, 18))
     # for i in range(orientation_histogram.shape[2]):
@@ -187,9 +190,9 @@ def hog_feature(im):
     # plt.tight_layout()
     # plt.show()
 
-    # 笔记10:
-    # ravel() 是将多维数组 orientation_histogram 平铺（展开）为一维数组的操作
     return orientation_histogram.ravel()
+    # 笔记11:
+    # ravel() 是将多维数组 orientation_histogram 平铺（展开）为一维数组的操作
 
 def color_histogram_hsv(im, nbin=10, xmin=0, xmax=255, normalized=True):
     """
