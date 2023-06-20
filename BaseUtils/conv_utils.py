@@ -2,11 +2,11 @@ from numpy.lib.stride_tricks import as_strided
 
 def sliding_window(image, window_size, step):
     """
-    函数功能:
+    函数功能:滤波器在image上根据步长值进行滑动，获取所有窗口
 
     input:
         - image: 一张RGB图像,shape为(C,H,W)
-        - window_size: 滤波器的大小
+        - window_size: 滤波器的尺寸(C,HH,WW)
 
     return:
         - window_view:
