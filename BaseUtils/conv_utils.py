@@ -9,7 +9,7 @@ def sliding_window(image, window_size, step):
         - window_size: 滤波器的尺寸(C,HH,WW)
 
     return:
-        - window_view:
+        - window_view: shape为(OH, OW, C, HH, WW)的输出数据
     """
 
     """ 计算窗口在图像上滑动的步幅 """
