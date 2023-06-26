@@ -1,7 +1,7 @@
 import numpy as np
 
 from BaseUtils.gradient_check import eval_numerical_gradient_array
-from tutorial.NeuralNetwork.layer_utils.conv import conv_forward, conv_backward
+from tutorial.NeuralNetwork.layer_utils.conv import conv_forward_naive, conv_backward_naive
 from tutorial.NeuralNetwork.layer_utils.max_pool import max_pool_forward_naive, max_pool_backward_naive
 
 
@@ -9,7 +9,7 @@ def rel_error(x, y):
     """ returns relative error """
     return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
 
-def verify_conv_forward():
+def verify_conv_forward_naive():
     """
     函数功能: 验证卷积层的前向传播方法
     """
@@ -20,7 +20,7 @@ def verify_conv_forward():
     b = np.linspace(-0.1, 0.2, num=3)
 
     conv_param = {'stride': 2, 'pad': 1}
-    out, _ = conv_forward(x, w, b, conv_param)
+    out, _ = conv_forward_naive(x, w, b, conv_param)
     correct_out = np.array([[[[-0.08759809, -0.10987781],
                               [-0.18387192, -0.2109216]],
                              [[0.21027089, 0.21661097],
@@ -35,10 +35,10 @@ def verify_conv_forward():
                               [2.38090835, 2.38247847]]]])
 
     # Compare your output to ours; difference should be around e-8
-    print('Testing conv_forward_naive')
+    print('Testing conv_forward_naive_naive')
     print('difference: ', rel_error(out, correct_out))
 
-def verify_conv_backward():
+def verify_conv_backward_naive():
     """
     函数功能: 验证卷积层的反向传播算法
     """
@@ -49,15 +49,15 @@ def verify_conv_backward():
     dout = np.random.randn(4, 2, 5, 5)
     conv_param = {'stride': 1, 'pad': 1}
 
-    dx_num = eval_numerical_gradient_array(lambda x: conv_forward(x, w, b, conv_param)[0], x, dout)
-    dw_num = eval_numerical_gradient_array(lambda w: conv_forward(x, w, b, conv_param)[0], w, dout)
-    db_num = eval_numerical_gradient_array(lambda b: conv_forward(x, w, b, conv_param)[0], b, dout)
+    dx_num = eval_numerical_gradient_array(lambda x: conv_forward_naive(x, w, b, conv_param)[0], x, dout)
+    dw_num = eval_numerical_gradient_array(lambda w: conv_forward_naive(x, w, b, conv_param)[0], w, dout)
+    db_num = eval_numerical_gradient_array(lambda b: conv_forward_naive(x, w, b, conv_param)[0], b, dout)
 
-    out, cache = conv_forward(x, w, b, conv_param)
-    dx, dw, db = conv_backward(dout, cache)
+    out, cache = conv_forward_naive(x, w, b, conv_param)
+    dx, dw, db = conv_backward_naive(dout, cache)
 
     # Your errors should be around e-8 or less.
-    print('Testing conv_backward_naive function')
+    print('Testing conv_backward_naive_naive function')
     print('dx error: ', rel_error(dx, dx_num))
     print('dw error: ', rel_error(dw, dw_num))
     print('db error: ', rel_error(db, db_num))
