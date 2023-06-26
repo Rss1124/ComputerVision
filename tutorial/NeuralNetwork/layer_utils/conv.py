@@ -4,7 +4,7 @@ import numpy as np
 from BaseUtils.conv_utils import sliding_window
 
 
-def conv_forward(images, filters, b, conv_param):
+def conv_forward_naive(images, filters, b, conv_param):
     """
     函数功能: 卷积层的前向传播
 
@@ -76,7 +76,7 @@ def conv_forward(images, filters, b, conv_param):
     return out, cache
 
 
-def conv_backward(dout, cache):
+def conv_backward_naive(dout, cache):
     """
     函数功能: 卷积层的反向传播
 
