@@ -5,11 +5,14 @@ def sliding_window(image, window_size, step):
     函数功能:滤波器在image上根据步长值进行滑动，获取所有窗口
 
     input:
-        - image: 一张RGB图像,shape为(C,H,W)
-        - window_size: 滤波器的尺寸(C,HH,WW)
+        - image: 一张RGB图像,shape为(C,H,W)或者(H,W)
+        - window_size: 滤波器的尺寸(C,HH,WW)或者(HH,WW)
+        - step: 滤波器的步长
 
     return:
-        - window_view: shape为(OH, OW, C, HH, WW)的输出数据
+        - window_view:
+            - 如果image为二维，则返回shape为(OH, OW, HH, WW)的输出数据
+            - 如果image为三维，则返回shape为(OH, OW, C, HH, WW)的输出数据
     """
 
     """ 计算窗口在图像上滑动的步幅 """
