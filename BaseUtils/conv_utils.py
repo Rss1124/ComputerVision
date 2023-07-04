@@ -1,3 +1,4 @@
+import numpy as np
 from numpy.lib.stride_tricks import as_strided
 
 def sliding_window(image, window_size, step):
@@ -66,3 +67,114 @@ def sliding_window(image, window_size, step):
     # 128代表着window内部元素沿着z轴移动所需要的byte，32代表着window内部元素沿着y轴移动所需要的byte，8代表着window内部元素沿着x轴
     # 移动所需要的byte,
     return window_view
+
+def im2col(images, window_height, window_width, conv_param, OH, OW):
+    """
+    函数功能:将shape为(N,C,H,W)的图像映射到二维矩阵cols上面去
+
+    input:
+        - image: 一张RGB图像,shape为(N,C,H,W)
+        - window_height: 滤波器的高
+        - window_width: 滤波器的宽
+        - conv-param: 卷积的参数, 包含(stride ,pad)
+        - OH: 卷积之后的输出窗口的高
+        - OW: 卷积之后的输出窗口的宽
+
+    return:
+        - cols: shape为(C * window_height * window_width, N * OH * OW)
+    """
+
+    N, C, H, W = images.shape
+    step = conv_param["stride"]
+    pad_num = conv_param["pad"]
+    cols = np.zeros((C * window_height * window_width, N * OH * OW))
+
+    if pad_num != 0:
+        images_pad = np.zeros((N, images.shape[1], images.shape[2] + 2 * pad_num, images.shape[3] + 2 * pad_num))
+    else:
+        images_pad = images
+
+    pad_width = ((0, 0), (0, 0), (pad_num, pad_num), (pad_num, pad_num))
+    images_pad = np.pad(images, pad_width, constant_values=0)
+
+    for c in range(C):
+        for oh in range(OH):
+            for ow in range(OW):
+                for w_h in range(window_height):
+                    for w_w in range(window_width):
+                        row = c * window_height * window_width + w_h * window_height + w_w
+                        # 笔记1:
+                        # c * field_h * field_w 代表着在不同通道上的"初始窗口"在一维数组上的的映射地址
+                        # f_h * field_h + f_w 代表着每个窗口内部的地址
+                        for n in range(N):
+                            column = oh * OW * N + ow * N + n
+                            # 笔记2:
+                            # hh * WW * N 代表着窗口在所有图像中，垂直方向的偏移
+                            # ww * N 代表着窗口在所有图像中，水平方向的偏移
+                            # n 代表着窗口在不同图像中的偏移
+                            cols[row, column] = images_pad[n, c, step * oh + w_h, step * ow + w_w]
+                            # 笔记3:
+                            # cols与image_padded的对应关系如下:
+                            # 假设参数为: N=2, C=3, H=4, W=4, OH=2, OW=2, window_height=2, window_width=2
+                            # 最终我们会得到一个shape为(12, 8)的cols矩阵,12代表一个区块所包含的元素的个数,8代表区块的个数
+                            # 并且当column= 0,2,4,6 时代表着第一个图像的四个区块, 当column= 1,3,5,7 时代表着第二图像的四个区块
+
+                            # 其中row可以解析到image_padded.shape[1],image_padded.shape[2],image_padded.shape[3]上
+                            # column可以解析到image_padded.shape[0],image_padded.shape[2],image_padded.shape[3]上
+
+                            # 举例:clos[5,4]
+                            # 5代表着区块里的第六个元素,意味着在第二层的通道上
+                            # 4代表着第一个图像的第三个区块
+                            # 这样我们就将cols[5,4]映射到了第一个图像的第三个区块的第六个元素也就是image_padded[0,1,2,1]
+
+    return cols
+
+def col2im(cols, N, C, H, W, window_height, window_width, padding, stride):
+    """
+    函数功能:将二维矩阵cols映射到shape为(N,C,H,W)的四维矩阵上面去，在这里有两种映射的方法：
+            一种是im2col的逆运算，另一种是将dx映射回去
+
+    input:
+        - cols: shape为(C * window_height * window_width, N * OH * OW)的二维矩阵,由image映射而来
+        - N: image的数量
+        - C: image的通道数
+        - H: image的高
+        - W: image的宽
+        - window_height: 滤波器的高
+        - window_width: 滤波器的宽
+        - padding: 填充宽度
+        - stride: 步长
+
+    return:
+        - image: shape为(N,C,H,W)的原图像
+        - dx: 反向传播中, x的梯度
+    """
+
+    OH = (H + 2 * padding - window_height) // stride + 1
+    OW = (W + 2 * padding - window_width) // stride + 1
+    x_padded = np.zeros((N,C,H + 2 * padding, W + 2 * padding), dtype=cols.dtype)
+    dx = np.zeros((N,C,H + 2 * padding, W + 2 * padding), dtype=cols.dtype)
+
+    for c in range(C):
+        for w_h in range(window_height):
+            for w_w in range(window_width):
+                row = c * window_height * window_width + w_h * window_height + w_w
+                for oh in range(OH):
+                    for ow in range(OW):
+                        for n in range(N):
+                            column = oh * OW * N + ow * N + n
+                            """ im2col的逆运算 """
+                            x_padded[n, c,  stride * oh + w_h, stride * ow + w_w] = cols[row, column]
+                            # 笔记1:
+                            # 将cols映射回去只需要将cols里面的元素回填到x_padded中即可
+                            """ 将dx映射到四维矩阵中 """
+                            dx[n, c,  stride * oh + w_h, stride * ow + w_w] += cols[row, column]
+                            # 笔记2:
+                            # 在卷积层反向传播中计算x的梯度dx,需要叠加元素,所以这里的映射操作用了操作符"+="
+
+    if padding > 0:
+        image = x_padded[:, :, padding:-padding, padding:-padding]
+        dx = dx[:, :, padding:-padding, padding:-padding]
+    else:
+        image = x_padded
+    return image, dx
