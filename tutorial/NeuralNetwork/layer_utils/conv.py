@@ -1,7 +1,7 @@
 """ ----------------------------------------------- conv层(卷积层) ----------------------------------------------- """
 import numpy as np
 
-from BaseUtils.conv_utils import sliding_window
+from BaseUtils.conv_utils import sliding_window, im2col, col2im
 
 
 def conv_forward_naive(images, filters, b, conv_param):
@@ -52,12 +52,15 @@ def conv_forward_naive(images, filters, b, conv_param):
 
     """ 获取out """
     out = np.zeros((N, F, OH, OW))
+
+    """ 0填充 """
+    pad_width = ((0, 0), (0, 0), (pad_num, pad_num), (pad_num, pad_num))
+    images_pad = np.pad(images, pad_width, constant_values=0)
+    # 笔记1:
+    # pad_width 内部的元组,就代表对应的维度
+    # 在这里,image(N,C,H,W)的前两个维度不进行拓展"0",后面两个维度则会进行拓展,拓展的宽度为pad_num,拓展的值为constant_values
+
     for i in range(N):
-
-        """ 0填充 """
-        pad_width = ((0, 0), (pad_num, pad_num), (pad_num, pad_num))
-        images_pad[i] = np.pad(images[i], pad_width, constant_values=0)
-
         for j in range(F):
             """ 获取滤波器滑动后的窗口集 """
             x = sliding_window(images_pad[i], (filters.shape[1], HH, WW), conv_param["stride"])
@@ -119,3 +122,94 @@ def conv_backward_naive(dout, cache):
 
     dx = dx[:,:,pad:x.shape[2]-pad,pad:x.shape[3]-pad]
     return dx, dw, db
+
+def conv_forward_im2col(x, w, b, conv_param):
+    """
+    函数功能: 使用im2col算法来实现卷积层的前向传播
+
+    input:
+        - x: shape为(N,C,H,W)的图像集
+        - w: shape为(F,C,HH,WW)的滤波器集
+        - b: shape为(F, )偏执项
+        - conv_param: 卷积参数,包含(stride, pad)
+
+    returns a tuple of:
+        - out: shape为(N, F, OH, OW)的输出数据，OH = 1+(H+2*pad-HH)/stride，OW = 1+(W+2*pad-WW)/stride
+        - cache: 缓存数据，包含(x, w, b, conv_param, x_cols)
+    """
+    N, C, H, W = x.shape
+    num_filters, _, filter_height, filter_width = w.shape
+    stride, pad = conv_param["stride"], conv_param["pad"]
+
+    """ 检查OH, OW是否正常 """
+    assert (W + 2 * pad - filter_width) % stride == 0, "width does not work"
+    assert (H + 2 * pad - filter_height) % stride == 0, "height does not work"
+
+    """ 计算OH,OW """
+    out_height = (H + 2 * pad - filter_height) // stride + 1
+    out_width = (W + 2 * pad - filter_width) // stride + 1
+
+    """ 初始化out矩阵 """
+    out = np.zeros((N, num_filters, out_height, out_width), dtype=x.dtype)
+
+    """ 将x(rgb图像)映射到二维矩阵x_cols上, 方便后续计算 """
+    x_cols = im2col(x, w.shape[2], w.shape[3], conv_param, out_height, out_width)
+
+    """ 计算点积 """
+    res = w.reshape((w.shape[0], -1)).dot(x_cols) + b.reshape(-1, 1)
+
+    out = res.reshape(w.shape[0], out.shape[2], out.shape[3], x.shape[0])
+    out = out.transpose(3, 0, 1, 2)
+
+    """ 将数据存储在缓存中 """
+    cache = (x, w, b, conv_param, x_cols)
+    return out, cache
+
+def conv_backward_col2im(dout, cache):
+    """
+    函数功能: 使用im2col算法来实现卷积层的反向传播
+
+    input:
+        - dout: shape为(N, F, OH, OW)的上一层导数，OH = 1+(H+2*pad-HH)/stride，OW = 1+(W+2*pad-WW)/stride
+        - cache: 在前向传播中保存的缓存数据
+
+    returns a tuple of:
+        - dx: x(image)的梯度，shape为(N, C, H, W)
+        - dw: w(filter)的梯度，shape为(F, C, HH, WW)
+        - db: b的梯度，shape为(F,)
+    """
+
+    """ 从缓存中获取数据 """
+    x, w, b, conv_param, x_cols = cache
+    stride, pad = conv_param["stride"], conv_param["pad"]
+
+    """ 计算db """
+    db = np.sum(dout, axis=(0, 2, 3))
+    # 笔记1:
+    # np.sum(dout, axis=(0, 2, 3)) 表示对dout的第0,第2和第3个轴进行求和，得到一个降维后的一维数组 db
+    # 在这里是对所有图片的每个通道进行的求和
+
+    num_filters, _, filter_height, filter_width = w.shape
+    dout_reshaped = dout.transpose(1, 2, 3, 0).reshape(num_filters, -1)
+
+    """ 计算dw """
+    dw = dout_reshaped.dot(x_cols.T).reshape(w.shape)
+
+    """ 计算dx """
+    dx_cols = w.reshape(num_filters, -1).T.dot(dout_reshaped)
+
+    """ 将dx_cols映射到4维矩阵上 """
+    x_padded, dx = col2im(
+        dx_cols,
+        x.shape[0],
+        x.shape[1],
+        x.shape[2],
+        x.shape[3],
+        filter_height,
+        filter_width,
+        pad,
+        stride,
+    )
+
+    return dx, dw, db
+
