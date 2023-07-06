@@ -1,8 +1,8 @@
-import numpy as np
+from time import time
 
 from BaseUtils.gradient_check import eval_numerical_gradient_array
-from tutorial.NeuralNetwork.layer_utils.conv import conv_forward_naive, conv_backward_naive
-from tutorial.NeuralNetwork.layer_utils.max_pool import max_pool_forward_naive, max_pool_backward_naive
+from tutorial.NeuralNetwork.layer_utils.conv import *
+from tutorial.NeuralNetwork.layer_utils.max_pool import *
 
 
 def rel_error(x, y):
@@ -106,3 +106,67 @@ def verify_maxPool_backward():
     # Your error should be on the order of e-12
     print('Testing max_pool_backward_naive function:')
     print('dx error: ', rel_error(dx, dx_num))
+
+def compare_conv_naive_and_fast():
+    np.random.seed(231)
+    x = np.random.randn(100, 3, 31, 31)
+    w = np.random.randn(25, 3, 3, 3)
+    b = np.random.randn(25, )
+    dout = np.random.randn(100, 25, 16, 16)
+    conv_param = {'stride': 2, 'pad': 1}
+
+    t0 = time()
+    out_naive, cache_naive = conv_forward_naive(x, w, b, conv_param)
+    t1 = time()
+    out_fast, cache_fast = conv_forward_im2col(x, w, b, conv_param)
+    t2 = time()
+
+    print('Testing conv_forward_fast:')
+    print('Naive: %fs' % (t1 - t0))
+    print('Fast: %fs' % (t2 - t1))
+    print('Speedup: %fx' % ((t1 - t0) / (t2 - t1)))
+    print('Difference: ', rel_error(out_naive, out_fast))
+
+    t0 = time()
+    dx_naive, dw_naive, db_naive = conv_backward_naive(dout, cache_naive)
+    t1 = time()
+    dx_fast, dw_fast, db_fast = conv_backward_col2im(dout, cache_fast)
+    t2 = time()
+
+    print('\nTesting conv_backward_fast:')
+    print('Naive: %fs' % (t1 - t0))
+    print('Fast: %fs' % (t2 - t1))
+    print('Speedup: %fx' % ((t1 - t0) / (t2 - t1)))
+    print('dx difference: ', rel_error(dx_naive, dx_fast))
+    print('dw difference: ', rel_error(dw_naive, dw_fast))
+    print('db difference: ', rel_error(db_naive, db_fast))
+
+def compare_maxPool_naive_and_fast():
+    np.random.seed(231)
+    x = np.random.randn(100, 3, 32, 32)
+    dout = np.random.randn(100, 3, 16, 16)
+    pool_param = {'pool_height': 2, 'pool_width': 2, 'stride': 2}
+
+    t0 = time()
+    out_naive, cache_naive = max_pool_forward_naive(x, pool_param)
+    t1 = time()
+    out_fast, cache_fast = max_pool_forward_im2col(x, pool_param)
+    t2 = time()
+
+    print('Testing pool_forward_fast:')
+    print('Naive: %fs' % (t1 - t0))
+    print('fast: %fs' % (t2 - t1))
+    print('speedup: %fx' % ((t1 - t0) / (t2 - t1)))
+    print('difference: ', rel_error(out_naive, out_fast))
+
+    t0 = time()
+    dx_naive = max_pool_backward_naive(dout, cache_naive)
+    t1 = time()
+    dx_fast = max_pool_backward_col2im(dout, cache_fast)
+    t2 = time()
+
+    print('\nTesting pool_backward_fast:')
+    print('Naive: %fs' % (t1 - t0))
+    print('fast: %fs' % (t2 - t1))
+    print('speedup: %fx' % ((t1 - t0) / (t2 - t1)))
+    print('dx difference: ', rel_error(dx_naive, dx_fast))
