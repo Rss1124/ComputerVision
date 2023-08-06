@@ -49,7 +49,7 @@ class Layer(object):
 
         input:
             - X: 输入数据(N,d1, d2, ..., dn)
-            - y: 隐藏层的特征维度
+            - y: 数据集对应的标签数据
         return:
             - loss: 损失值
             - grads: 各个网络层的梯度(字典格式存储)
