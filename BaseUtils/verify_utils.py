@@ -1,6 +1,8 @@
 from time import time
 
-from BaseUtils.gradient_check import eval_numerical_gradient_array
+from BaseUtils.gradient_check import eval_numerical_gradient_array, eval_numerical_gradient
+from tutorial.NeuralNetwork.cnn import ThreeLayerConvNet
+from tutorial.NeuralNetwork.fully_connected import Layer
 from tutorial.NeuralNetwork.layer_utils.conv import *
 from tutorial.NeuralNetwork.layer_utils.max_pool import *
 
@@ -170,3 +172,63 @@ def compare_maxPool_naive_and_fast():
     print('fast: %fs' % (t2 - t1))
     print('speedup: %fx' % ((t1 - t0) / (t2 - t1)))
     print('dx difference: ', rel_error(dx_naive, dx_fast))
+
+def check_twoLayer_net():
+    model = Layer()
+
+    N = 50
+    X = np.random.randn(N, 3, 32, 32)
+    y = np.random.randint(10, size=N)
+
+    loss, grads = model.loss(X, y)
+    print('Initial loss (no regularization): ', loss)
+    # 笔记1:
+    # 当我们使用softmax计算损失时，对于C个标签类别，我们期望随机权重(没有正则化)的损失约为ln(C)
+    # 注: ln(10) = 2.3025
+
+    model.reg = 0.5
+    loss, grads = model.loss(X, y)
+    print('Initial loss (with regularization): ', loss)
+
+def check_cnn_net():
+    print("---------------------------- check loss ----------------------------")
+    model = ThreeLayerConvNet()
+
+    N = 50
+    X = np.random.randn(N, 3, 32, 32)
+    y = np.random.randint(10, size=N)
+
+    loss, grads = model.loss(X, y)
+    print('Initial loss (no regularization): ', loss)
+    # 笔记1:
+    # 当我们使用softmax计算损失时，对于C个标签类别，我们期望随机权重(没有正则化)的损失约为ln(C)
+    # 注: ln(10) = 2.3025
+
+    model.reg = 0.5
+    loss, grads = model.loss(X, y)
+    print('Initial loss (with regularization): ', loss)
+
+    print("---------------------------- check grads ----------------------------")
+    num_inputs = 2
+    input_dim = (3, 16, 16)
+    reg = 0.0
+    num_classes = 10
+    np.random.seed(231)
+    X = np.random.randn(num_inputs, *input_dim)
+    y = np.random.randint(num_classes, size=num_inputs)
+
+    model = ThreeLayerConvNet(
+        num_filters=3,
+        filter_size=3,
+        input_dim=input_dim,
+        hidden_dim=7,
+        dtype=np.float64
+    )
+    loss, grads = model.loss(X, y)
+    # Errors should be small, but correct implementations may have
+    # relative errors up to the order of e-2
+    for param_name in sorted(grads):
+        f = lambda _: model.loss(X, y)[0]
+        param_grad_num = eval_numerical_gradient(f, model.params[param_name], verbose=False, h=1e-6)
+        e = rel_error(param_grad_num, grads[param_name])
+        print('%s max relative error: %e' % (param_name, rel_error(param_grad_num, grads[param_name])))
