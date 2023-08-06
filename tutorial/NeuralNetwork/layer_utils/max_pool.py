@@ -89,7 +89,7 @@ def max_pool_forward_im2col(x, pool_param):
     函数功能: 基于im2col算法的最大池化层的前向传播
 
     Inputs:
-        - x: shape为(N, C, H, W)的池化层数据
+        - x: shape为(N, C, H, W)的池化层数据  *注意: C是滤波器的数量(F), H是特征输出图的高度, W是特征输出图的宽度
         - pool_param: 字典（池化层参数）:
             - 'pool_height': 池化窗口的高度
             - 'pool_width': 池化窗口的宽度
@@ -142,11 +142,11 @@ def max_pool_backward_col2im(dout, cache):
     函数功能: 基于col2im算法的最大池化层的反向传播
 
     Inputs:
-    - dout: shape为(N,C,OH,OW)的上一层导数
-    - cache: 缓存数据，包含(x, x对应的映射矩阵x_cols, 记录下标的x_cols_argmax, pool_param)
+        - dout: shape为(N,C,OH,OW)的上一层导数
+        - cache: 缓存数据，包含(x, x对应的映射矩阵x_cols, 记录下标的x_cols_argmax, pool_param)
 
     Returns:
-    - dx: x的梯度，shape为((N,C,H,W))
+        - dx: x的梯度，shape为(N,C,H,W)
     """
 
     x, x_cols, x_cols_argmax, pool_param = cache
