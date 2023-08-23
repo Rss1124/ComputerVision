@@ -110,6 +110,9 @@ def verify_maxPool_backward():
     print('dx error: ', rel_error(dx, dx_num))
 
 def compare_conv_naive_and_fast():
+    """
+    函数功能: 验证卷积层的优化算法,并与朴素算法进行比较
+    """
     np.random.seed(231)
     x = np.random.randn(100, 3, 31, 31)
     w = np.random.randn(25, 3, 3, 3)
@@ -144,6 +147,9 @@ def compare_conv_naive_and_fast():
     print('db difference: ', rel_error(db_naive, db_fast))
 
 def compare_maxPool_naive_and_fast():
+    """
+    函数功能: 验证池化层的优化算法,并与朴素算法进行比较
+    """
     np.random.seed(231)
     x = np.random.randn(100, 3, 32, 32)
     dout = np.random.randn(100, 3, 16, 16)
@@ -174,6 +180,9 @@ def compare_maxPool_naive_and_fast():
     print('dx difference: ', rel_error(dx_naive, dx_fast))
 
 def check_twoLayer_net():
+    """
+    函数功能: 验证两层的全连接神经网络
+    """
     model = Layer()
 
     N = 50
@@ -191,6 +200,9 @@ def check_twoLayer_net():
     print('Initial loss (with regularization): ', loss)
 
 def check_cnn_net():
+    """
+    函数功能: 验证三层的卷积神经网络
+    """
     print("---------------------------- check loss ----------------------------")
     model = ThreeLayerConvNet()
 
